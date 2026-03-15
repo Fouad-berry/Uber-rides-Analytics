@@ -43,6 +43,7 @@ data/
   raw/
     UberDataset.csv
   processed/
+    rides_clean.parquet
 
 pyspark_jobs/
   ingestion.py  
@@ -89,6 +90,16 @@ source .venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
+
+
+## À quoi sert le dossier data/processed ?
+
+Le dossier `data/processed` contient les données nettoyées et prêtes à l’analyse, générées par le script de nettoyage (`cleaning.py`).
+
+- Le fichier `rides_clean.parquet` est une version optimisée et propre du dataset, au format Parquet (plus rapide et adapté à Spark).
+- On l’utilise pour toutes les analyses, ce qui évite de refaire le nettoyage à chaque fois.
+
+---
 
 3. Exécutez les scripts PySpark dans l'ordre suivant :
 
