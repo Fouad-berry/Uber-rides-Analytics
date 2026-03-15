@@ -1,8 +1,3 @@
-data/
-pyspark_jobs/
-notebooks/
-pip install -r requirements.txt
-
 # Analyse de données Uber avec PySpark
 
 Ce projet analyse des données de trajets Uber à l'aide de PySpark.
