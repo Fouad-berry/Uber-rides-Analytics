@@ -1,71 +1,72 @@
-> **Important :** Avant chaque commande Superset, exécute :
-> ```bash
-> export SUPERSET_CONFIG_PATH=$(pwd)/superset_config.py
-> ```
-> Cela garantit que Superset utilise bien ta clé secrète personnalisée et démarre sans erreur.
-
-## Visualisation avec Apache Superset
-
-Pour créer des dashboards interactifs et professionnels, ce projet utilise Apache Superset.
-
-### Workflow
-
-Uber CSV → PySpark cleaning → Parquet/SQLite → Apache Superset → Dashboard
-
-### Étapes d'utilisation
-
-1. **Nettoyage et export**
-   - Lance `python pyspark_jobs/cleaning.py` :
-     - Les données sont nettoyées (Parquet)
-     - Un fichier `uber.db` (SQLite) est généré automatiquement
-
-2. **Installation de Superset**
-   - Active ton environnement virtuel :
-     ```bash
-     source .venv/bin/activate
-     ```
-   - Installe Superset :
-     ```bash
-     pip install apache-superset
-     ```
-   - Initialise Superset :
-     ```bash
-     superset db upgrade
-     superset fab create-admin
-     superset init
-     export SUPERSET_CONFIG_PATH=$(pwd)/superset_config.py
-     superset run -p 8088 --with-threads --reload --debugger
-     ```
-   - Ouvre http://localhost:8088 dans ton navigateur
-
-3. **Connexion à la base SQLite**
-   - Dans Superset :
-     - Settings → Database Connections → Add Database
-     - Connection string :
-       ```
-       sqlite:///uber.db
-       ```
-
-4. **Ajout du dataset**
-   - Datasets → Add Dataset → Choisir `uber_rides`
-
-5. **Création de graphiques**
-   - Pie Chart : répartition par CATEGORY
-   - Bar Chart : top lieux de départ (START)
-   - Histogram : distribution des distances (MILES)
-   - Bar Chart : top destinations (STOP)
 
 # Analyse de données Uber avec PySpark
 
-Ce projet analyse des données de trajets Uber à l'aide de PySpark.
+Ce projet analyse des données de trajets Uber avec PySpark et visualise les insights avec Apache Superset.
 
-L'objectif est de démontrer des compétences en data analytics et big data en construisant un pipeline qui extrait des insights à partir de données de trajets.
+L'objectif est de démontrer des compétences en data analytics et data engineering en construisant un pipeline qui nettoie les données, les stocke dans des formats optimisés et crée des dashboards interactifs.
 
----
+------------------------------------------------------------------------
 
-## Jeu de données
 
-Le dataset Uber contient des informations sur les trajets, notamment :
+# Architecture du projet
+
+Uber CSV Dataset\
+↓\
+Nettoyage PySpark\
+↓\
+Parquet (Data Lake)\
+↓\
+Base SQLite\
+↓\
+Dashboard Apache Superset
+
+------------------------------------------------------------------------
+
+
+# Stack technique
+
+- Python
+- PySpark
+- Apache Spark
+- Pandas
+- SQLite
+- Apache Superset
+- Parquet
+
+------------------------------------------------------------------------
+
+
+# Structure du projet
+
+        uber-rides-analytics-pyspark
+
+        data/
+            raw/
+                UberDataset.csv
+
+            processed/
+                rides_clean.parquet
+
+        pyspark_jobs/
+            ingestion.py
+            cleaning.py
+            analytics.py
+
+        notebooks/
+            exploration.ipynb
+
+        dashboards/
+
+        requirements.txt
+        superset_config.py
+        README.md
+
+------------------------------------------------------------------------
+
+
+# Jeu de données
+
+Le dataset contient des informations sur les trajets Uber, notamment :
 
 - Date de début
 - Date de fin
@@ -75,41 +76,185 @@ Le dataset Uber contient des informations sur les trajets, notamment :
 - Catégorie du trajet
 - Motif du trajet
 
----
+Colonnes :
 
-## Stack technique
+    START_DATE
+    END_DATE
+    CATEGORY
+    START
+    STOP
+    MILES
+    PURPOSE
 
-Python  
-PySpark  
-Apache Spark  
-Parquet  
-Metabase / Superset  
+------------------------------------------------------------------------
 
----
 
-## Structure du projet
+# Deux environnements Python
 
-uber-rides-analytics-pyspark
+Ce projet utilise **deux environnements Python séparés** car :
 
-data/
-  raw/
-    UberDataset.csv
-  processed/
+- PySpark nécessite **pandas \>= 2.2**
+- Apache Superset nécessite **pandas \< 2.2**
+
+Pour éviter les conflits de dépendances, on les sépare :
+
+    spark_env → pipeline PySpark
+    .venv → Apache Superset
+
+------------------------------------------------------------------------
+
+
+# 1. Créer l'environnement PySpark
+
+Cet environnement exécute le pipeline de données.
+
+    python3 -m venv spark_env
+    source spark_env/bin/activate
+
+Installer les dépendances :
+
+    pip install pyspark pandas>=2.2
+
+------------------------------------------------------------------------
+
+
+# 2. Exécuter le pipeline PySpark
+
+Dans l'environnement Spark :
+
+    source spark_env/bin/activate
+
+Lancer les scripts :
+
+    python pyspark_jobs/ingestion.py
+    python pyspark_jobs/cleaning.py
+    python pyspark_jobs/analytics.py
+
+Le script de nettoyage va :
+
+- Nettoyer le dataset
+- Sauvegarder les données optimisées en Parquet
+- Exporter les données dans une base SQLite (`uber.db`) utilisée par Superset
+
+Fichiers générés :
+
+    data/processed/rides_clean.parquet
+    uber.db
+
+------------------------------------------------------------------------
+
+
+# Pourquoi data/processed existe ?
+
+Le dossier `data/processed` contient les **données nettoyées** prêtes pour l'analyse.
+
+Exemple :
+
     rides_clean.parquet
 
-pyspark_jobs/
-  ingestion.py  
-  cleaning.py  
-  analytics.py  
+Avantages :
 
-notebooks/
-  exploration.ipynb
+- requêtes plus rapides
+- optimisé pour Spark
+- évite de refaire le nettoyage à chaque fois
 
----
+------------------------------------------------------------------------
 
-## Questions analytiques
 
-Le projet répond à plusieurs questions :
+# 3. Créer l'environnement Superset
+
+Superset s'exécute dans un environnement séparé.
+
+    python3 -m venv .venv
+    source .venv/bin/activate
+
+Installer Superset :
+
+    pip install apache-superset pandas==2.1.4
+
+------------------------------------------------------------------------
+
+
+# 4. Initialiser Apache Superset
+
+Avant de lancer Superset, assure-toi qu'il charge la configuration personnalisée :
+
+    export SUPERSET_CONFIG_PATH=$(pwd)/superset_config.py
+
+Initialiser Superset :
+
+    superset db upgrade
+    superset fab create-admin
+    superset init
+
+Lancer Superset :
+
+    superset run -p 8088 --with-threads --reload --debugger
+
+Ouvre dans ton navigateur :
+
+    http://localhost:8088
+
+------------------------------------------------------------------------
+
+
+# Connecter Superset à SQLite
+
+Dans Superset :
+
+Settings → Database Connections → Add Database
+
+Connection string :
+
+    sqlite:///uber.db
+
+------------------------------------------------------------------------
+
+
+# Ajouter le dataset
+
+Datasets → Add Dataset
+
+Choisir :
+
+    uber_rides
+
+------------------------------------------------------------------------
+
+
+# Créer des graphiques
+
+Graphiques recommandés pour ce dataset :
+
+### Répartition par catégorie
+
+Pie Chart\
+Dimension : CATEGORY\
+Métrique : COUNT(*)
+
+### Top lieux de départ
+
+Bar Chart\
+Dimension : START\
+Métrique : COUNT(*)
+
+### Top destinations
+
+Bar Chart\
+Dimension : STOP\
+Métrique : COUNT(*)
+
+### Distribution des distances
+
+Histogramme\
+Colonne : MILES
+
+------------------------------------------------------------------------
+
+
+# Questions analytiques
+
+Ce projet répond à plusieurs questions métier :
 
 - Quels sont les motifs de trajets les plus courants ?
 - Quels sont les lieux de départ les plus fréquents ?
@@ -117,55 +262,31 @@ Le projet répond à plusieurs questions :
 - Quelles sont les heures de pointe ?
 - Les trajets sont-ils majoritairement professionnels ou personnels ?
 
----
+------------------------------------------------------------------------
 
-## Exemples d'insights
+
+# Exemples d'insights
 
 - Top lieux de départ
 - Top motifs de trajets
 - Distance moyenne des trajets
 - Répartition des trajets par catégorie
 
----
-
-## Comment exécuter le projet
-
-1. Créez un environnement virtuel Python :
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-2. Installez les dépendances :
-
-```bash
-pip install -r requirements.txt
-```
+------------------------------------------------------------------------
 
 
-## À quoi sert le dossier data/processed ?
+# Améliorations futures
 
-Le dossier `data/processed` contient les données nettoyées et prêtes à l’analyse, générées par le script de nettoyage (`cleaning.py`).
+Extensions possibles :
 
-- Le fichier `rides_clean.parquet` est une version optimisée et propre du dataset, au format Parquet (plus rapide et adapté à Spark).
-- On l’utilise pour toutes les analyses, ce qui évite de refaire le nettoyage à chaque fois.
+- Ajouter Apache Airflow pour l'orchestration du pipeline
+- Déployer les dashboards avec Docker
+- Stocker les données dans DuckDB ou PostgreSQL
+- Construire des pipelines ETL automatisés
 
----
+------------------------------------------------------------------------
 
-3. Exécutez les scripts PySpark dans l'ordre suivant :
 
-  a. Ingestion des données (lecture du CSV) :
-  ```bash
-  python pyspark_jobs/ingestion.py
-  ```
+# Auteur
 
-  b. Nettoyage et transformation (création du Parquet) :
-  ```bash
-  python pyspark_jobs/cleaning.py
-  ```
-
-  c. Analyses et requêtes :
-  ```bash
-  python pyspark_jobs/analytics.py
-  ```
+Projet d'analyse de données Uber avec PySpark et Apache Superset.
