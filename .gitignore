@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 *.pyd
 .venv/
+spark_env/
 venv/
 ENV/
 .env

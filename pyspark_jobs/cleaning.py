@@ -38,6 +38,15 @@ def main():
     )
     df = df.drop("START_DATE", "END_DATE")
     df.write.mode("overwrite").parquet("data/processed/rides_clean.parquet")
+
+    # Exporter vers SQLite pour Apache Superset
+    print("Export des données nettoyées vers SQLite (uber.db)...")
+    pandas_df = df.toPandas()
+    import sqlite3
+    conn = sqlite3.connect("uber.db")
+    pandas_df.to_sql("uber_rides", conn, if_exists="replace", index=False)
+    conn.close()
+    print("Export SQLite terminé.")
     spark.stop()
 
 if __name__ == "__main__":

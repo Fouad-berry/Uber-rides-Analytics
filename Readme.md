@@ -1,3 +1,60 @@
+> **Important :** Avant chaque commande Superset, exécute :
+> ```bash
+> export SUPERSET_CONFIG_PATH=$(pwd)/superset_config.py
+> ```
+> Cela garantit que Superset utilise bien ta clé secrète personnalisée et démarre sans erreur.
+
+## Visualisation avec Apache Superset
+
+Pour créer des dashboards interactifs et professionnels, ce projet utilise Apache Superset.
+
+### Workflow
+
+Uber CSV → PySpark cleaning → Parquet/SQLite → Apache Superset → Dashboard
+
+### Étapes d'utilisation
+
+1. **Nettoyage et export**
+   - Lance `python pyspark_jobs/cleaning.py` :
+     - Les données sont nettoyées (Parquet)
+     - Un fichier `uber.db` (SQLite) est généré automatiquement
+
+2. **Installation de Superset**
+   - Active ton environnement virtuel :
+     ```bash
+     source .venv/bin/activate
+     ```
+   - Installe Superset :
+     ```bash
+     pip install apache-superset
+     ```
+   - Initialise Superset :
+     ```bash
+     superset db upgrade
+     superset fab create-admin
+     superset init
+     export SUPERSET_CONFIG_PATH=$(pwd)/superset_config.py
+     superset run -p 8088 --with-threads --reload --debugger
+     ```
+   - Ouvre http://localhost:8088 dans ton navigateur
+
+3. **Connexion à la base SQLite**
+   - Dans Superset :
+     - Settings → Database Connections → Add Database
+     - Connection string :
+       ```
+       sqlite:///uber.db
+       ```
+
+4. **Ajout du dataset**
+   - Datasets → Add Dataset → Choisir `uber_rides`
+
+5. **Création de graphiques**
+   - Pie Chart : répartition par CATEGORY
+   - Bar Chart : top lieux de départ (START)
+   - Histogram : distribution des distances (MILES)
+   - Bar Chart : top destinations (STOP)
+
 # Analyse de données Uber avec PySpark
 
 Ce projet analyse des données de trajets Uber à l'aide de PySpark.
