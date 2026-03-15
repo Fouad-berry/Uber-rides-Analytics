@@ -1,0 +1,33 @@
+# Fichiers Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+ENV/
+.env
+
+# Fichiers Spark/Parquet
+*.parquet
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Autres fichiers temporaires
+.DS_Store
+node_modules
+dist
+build
+coverage
+*.log
+*.env
+.DS_Store
+.idea
+.vscode
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
